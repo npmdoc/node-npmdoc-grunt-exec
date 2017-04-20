@@ -1,0 +1,202 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/jharding/grunt-exec"
+
+    >grunt-exec (v2.0.0)</a>
+</h1>
+<h4>Grunt task for executing shell commands.</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.grunt-exec">module grunt-exec</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.grunt-exec.grunt-exec">
+            function <span class="apidocSignatureSpan"></span>grunt-exec
+            <span class="apidocSignatureSpan">(grunt)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.grunt-exec" id="apidoc.module.grunt-exec">module grunt-exec</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.grunt-exec.grunt-exec" id="apidoc.element.grunt-exec.grunt-exec">
+        function <span class="apidocSignatureSpan"></span>grunt-exec
+        <span class="apidocSignatureSpan">(grunt)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">grunt-exec = function (grunt) {
+  grunt.initConfig({
+    exec: {
+      remove_logs: {
+        command: process.platform === &#x27;win32&#x27; ? &#x27;del *.log&#x27; : &#x27;rm -f *.log&#x27;
+      , stdout: false
+      , stderr: false
+      }
+    , list_files: {
+        cmd: process.platform === &#x27;win32&#x27; ? &#x27;dir&#x27; : &#x27;ls -l **&#x27;
+      }
+    , list_all_files: process.platform === &#x27;win32&#x27; ? &#x27;dir&#x27; : &#x27;ls -la&#x27;
+    , echo_grunt_version: {
+        cmd: function() { return &#x27;echo &#x27; + this.version; }
+      }
+    , print_name: {
+        cmd: function(firstName, lastName) {
+          var formattedName = [
+                (lastName || &#x27;grunt&#x27;).toUpperCase()
+              , (firstName || &#x27;exec&#x27;).toUpperCase()
+              ].join(&#x27;, &#x27;);
+
+          return &#x27;echo &#x27; + formattedName;
+        }
+      }
+    , test_mysql_ticket: {
+
+      cmd: function () {
+        var DB_USER = &#x22;abc&#x22;;
+        var DB_PASSWORD = &#x22;password&#x22;;
+        var DATABASE = &#x22;database-with-dashes&#x22;;
+        return `echo mysql -u &#x22;${DB_USER}&#x22; -p&#x22;${DB_PASSWORD}&#x22; -e &#x22;CREATE DATABASE IF NOT EXISTS \`${DATABASE}\`;&#x22;`;
+      },
+      callback: function(err, stdout, stderr) {
+        console.log(&#x27;stdout: &#x27; + stdout);
+        if ((stdout + &#x22;&#x22;).trim() !== &#x27;mysql -u &#x22;abc&#x22; -p&#x22;password&#x22; -e &#x22;CREATE DATABASE IF NOT EXISTS `database-with-dashes`;&#x22;&#x27;) {
+          grunt.log.error(&#x22;Unexpected result: &#x22; + stdout);
+          return false;
+        }
+      }
+    }
+    , test_large_stdout_buffer: {
+      // maxBuffer has to be equal to count + 1
+      options: { maxBuffer: 10000001, encoding: &#x27;buffer&#x27; },
+
+      stdout: false, // suppress the stdout otherwise you get a bunch of garbage being displayed
+
+      cmd: function () {
+        var count = 1000000;
+        // generates count number of random bytes that are console-friendly (printable ascii 32-&#x3e;126)
+        return `node -e &#x22;var garbage = &#x27;&#x27;; var count = ${count}; for (var i = 0; i &#x3c; count; i++) { var c = String.fromCharCode(Math
+.floor(32 + (Math.random() * 94))); garbage += c; } process.stdout.write(garbage);&#x22;`;
+      },
+      callback: function(err, stdout, stderr) {
+        var count = 1000000;
+
+        if (err &#x26;&#x26; err.toString() === &#x22;Error: stdout maxBuffer exceeded&#x22;) {
+          grunt.log.error(&#x22;Unexpected maxBuffer exceeded&#x22;);
+          return false;
+        }
+
+        if (typeof stdout === &#x22;string&#x22;) {
+          grunt.log.error(&#x22;Unexpected stdout type (string), expected buffer. String length was &#x22; + stdout.length);
+          return false;
+        }
+
+        var str = stdout.toString();
+
+        if (str.length !== count) {
+          grunt.log.error(&#x22;Unexpected result: &#x22; + str.length + &#x22; != &#x22; + count.toString());
+          return false;
+        }
+      }
+    }
+    // this used to produce an error when using &#x27;exec&#x27;
+    , test_large_stdout_nocallback: {
+      stdout: false, // suppress the stdout otherwise you get a bunch of garbage being displayed
+
+      cmd: function () {
+        var count = 1000000;
+        // generates count number of random bytes that are console-friendly (printable ascii 32-&#x3e;126)
+        return `node -e &#x22;var garbage = &#x27;&#x27;; var count = ${count}; for (var i = 0; i &#x3c; count; i++) { var c = String.fromCharCode(Math
+.floor(32 + (Math.random() * 94))); garbage += c; } process.stdout.write(garbage);&#x22;`;
+      },
+    }
+    , test_large_stdout_string: {
+      // maxBuffer has to be equal to count + 1
+      options: { maxBuffer: 10000001 },
+
+      stdout: false, // suppress the stdout otherwise you get a bunch of garbage being displayed
+
+      cmd: function () {
+        var count = 1000000;
+        // generates count number of random bytes that are console-friendly (printable ascii 32-&#x3e;126)
+        return `node -e &#x22;var garbage = &#x27;&#x27;; var count = ${count}; for (var i = 0; i &#x3c; count; i++) { var c = String.fromCharCode(Math
+.floor(32 + (Math.random() * 94))); garbage += c; } process.stdout.write(garbage);&#x22;`;
+      },
+      callback: function(err, stdout, stderr) {
+        var count = 1000000;
+
+        if (err &#x26;&#x26; err.toString() === &#x22;Error: stdout maxBuffer exceeded&#x22;) {
+          grunt.log.error(&#x22;Unexpected maxBuffer exceeded&#x22;);
+          return false; ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
